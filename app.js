@@ -69,10 +69,6 @@ async function handleEvent(event) {
 }
 
 
-
-
-
-
 // const completion = await openai.createCompletion({
 //   model: "text-davinci-002",
 //   prompt: "Hello world",
