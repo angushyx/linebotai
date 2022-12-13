@@ -29,22 +29,62 @@ app.post('/callback', line.middleware(config), (req, res) => {
     });
 });
 
-// event handler
-function handleEvent(event) {
+// // event handler
+// function handleEvent(event) {
+//   if (event.type !== 'message' || event.message.type !== 'text') {
+//     // ignore non-text-message event
+//     return Promise.resolve(null);
+//   }
+
+//   // create a echoing text message
+//   const echo = { type: 'text', text: event.message.text };
+
+//   // use reply API
+//   return client.replyMessage(event.replyToken, echo);
+// }
+const { Configuration, OpenAIApi } = require("openai");
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+
+async function handleEvent(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
     // ignore non-text-message event
     return Promise.resolve(null);
   }
 
+  const completion = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: event.message.text ,
+    max_tokens:200,
+  });
+
   // create a echoing text message
-  const echo = { type: 'text', text: event.message.text };
+  const echo = { type: 'text', text: completion.data.choices[0].text.trim() };
 
   // use reply API
   return client.replyMessage(event.replyToken, echo);
 }
+
+
+
+
+
+
+// const completion = await openai.createCompletion({
+//   model: "text-davinci-002",
+//   prompt: "Hello world",
+// });
+
+
+// console.log(completion.data.choices[0].text);
 
 // listen on port
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`listening on ${port}`);
 });
+
+
