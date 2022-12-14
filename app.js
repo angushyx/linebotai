@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const line = require('@line/bot-sdk');
 const { Configuration, OpenAIApi } = require("openai");
+const APP_URL = process.env.APP_URL
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -59,8 +60,19 @@ async function handleEvent(event) {
   return client.replyMessage(event.replyToken, echo);
 }
 
-// listen on port
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`listening on ${port}`);
+
+app.get('/', (req, res) => {
+  if (APP_URL) {
+    res.redirect(APP_URL);
+    return;
+  }
+  res.sendStatus(200);
 });
+
+if(process.env.PORT){
+  // listen on port
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`listening on ${port}`);
+  });
+}
