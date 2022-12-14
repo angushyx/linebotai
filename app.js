@@ -3,9 +3,10 @@ require('dotenv').config();
 const express = require('express');
 const line = require('@line/bot-sdk');
 const { Configuration, OpenAIApi } = require("openai");
-const APP_URL = process.env.APP_URL
+const APP_URL = process.env.APP_URL || null
+const port = process.env.PORT || 3000;
 
-const configuration = new Configuration({
+const configuration = new Configuration({ 
   apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
@@ -20,9 +21,22 @@ const config = {
 // create LINE SDK client
 const client = new line.Client(config);
 
+
 // create Express app
 // about Express itself: https://expressjs.com/
 const app = express();
+
+app.get('/', (req, res) => {
+  if (APP_URL) {
+    res.redirect(APP_URL);
+    return;
+  }
+  res.sendStatus(200);
+});
+
+app.get('/test',  (req, res) => {
+ res.send('Hello')
+});
 
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
@@ -36,9 +50,6 @@ app.post('/callback', line.middleware(config), (req, res) => {
     });
 });
 
-app.get('/test',  (req, res) => {
- res.send('Hello')
-});
 
 // event handler
 async function handleEvent(event) {
@@ -50,7 +61,7 @@ async function handleEvent(event) {
   const completion = await openai.createCompletion({
     model: "text-davinci-003",
     prompt: event.message.text ,
-    max_tokens: 500,
+    max_tokens: 200,
   });
 
   // create a echoing text message
@@ -61,17 +72,7 @@ async function handleEvent(event) {
 }
 
 
-app.get('/', (req, res) => {
-  if (APP_URL) {
-    res.redirect(APP_URL);
-    return;
-  }
-  res.sendStatus(200);
-});
-
-if(process.env.PORT){
-  // listen on port
-  const port = process.env.PORT || 3000;
+if(port){
   app.listen(port, () => {
     console.log(`listening on ${port}`);
   });
